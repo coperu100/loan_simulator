@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>住宅ローン シンプルシミュレーター（シングル/ペア）</title>
+
+  <style>
+    :root { --gap: 12px; --maxw: 1400px; }
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      background:#f5f6f8;
+      color:#111;
+    }
+    .container{
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      gap: var(--gap);
+    }
+    header{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 16px;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    h1{ margin:0; font-size: 18px; }
+    .sub{ color:#666; font-size: 12px; }
+
+    .card{
+      background:#fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    .grid2{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: 1fr 1fr;
+      align-items:start;
+    }
+    @media (max-width: 1000px){
+      .grid2{ grid-template-columns: 1fr; }
+    }
+
+    .sectionTitle{
+      margin:0 0 10px;
+      font-size: 15px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 220px 1fr;
+      gap: 10px;
+      align-items:center;
+      margin: 10px 0;
+    }
+
+    label{ color:#222; font-size: 13px; }
+
+    input, select, button{
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid #cfcfcf;
+      border-radius: 12px;
+      background: #fff;
+    }
+    input[type="range"]{ width: 100%; padding: 0; border:none; background: transparent; }
+    select{ width: 100%; }
+
+    .pill{
+      display:inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #e5e5e5;
+      background:#fafafa;
+      color:#555;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      align-items:center;
+    }
+    button{
+      cursor:pointer;
+      border: 1px solid #111;
+      background:#111;
+      color:#fff;
+    }
+    button.secondary{
+      background:#fff;
+      color:#111;
+    }
+    button:disabled{
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .kpis{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 8px;
+    }
+    .kpiBox{
+      border: 1px solid #e6e6e6;
+      border-radius: 12px;
+      padding: 12px;
+      background:#fff;
+    }
+    .kpiLabel{ color:#444; font-size: 12px; }
+    .kpiValue{ font-size: 18px; font-weight: 800; margin-top: 4px; }
+
+    .miniGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      margin-top: 10px;
+      max-width: 640px;
+    }
+    .miniGrid .lab{ color:#444; font-size: 12px; }
+    .miniGrid .val{ text-align:right; font-weight: 600; }
+
+    .tables{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: 1fr 1fr;
+      align-items:start;
+    }
+    @media (max-width: 1000px){
+      .tables{ grid-template-columns: 1fr; }
+    }
+    .tableWrap{
+      overflow:auto;
+      max-height: 520px;
+      border: 1px solid #e6e6e6;
+      border-radius: 12px;
+    }
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background:#fff;
+    }
+    th, td{
+      border-bottom: 1px solid #eee;
+      padding: 8px 10px;
+      white-space: nowrap;
+      text-align:right;
+    }
+    th{
+      position: sticky;
+      top: 0;
+      background: #fafafa;
+      border-bottom: 1px solid #e6e6e6;
+      z-index: 1;
+      font-weight: 700;
+    }
+    th:first-child, td:first-child{ text-align:left; }
+
+    .note{
+      color:#666;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+    footer{
+      text-align:center;
+      color:#777;
+      font-size: 12px;
+      padding: 8px 0 4px;
+    }
+    .hidden{ display:none !important; }
+
+    .loanInnerCard{
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow:none;
+      background:#fff;
+    }
+    .scenarioBox{
+      border: 1px dashed #ddd;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      background:#fff;
+    }
+    .scenarioTitle{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .scenarioTableWrap{
+      overflow:auto;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      max-height: 220px;
+    }
+    .scenarioTableWrap table{ font-size: 12px; }
+    .scenarioTableWrap th{ position: sticky; top:0; background:#fafafa; }
+    .scenarioTableWrap th, .scenarioTableWrap td{ text-align:left; }
+    .scenarioTableWrap td:last-child{ text-align:center; }
+
+    .rangeLine{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .rangeValue{
+      min-width: 90px;
+      text-align:right;
+      font-weight:800;
+    }
+    .checkline{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      font-size:13px;
+      color:#222;
+    }
+    .errorBox{
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #ffccc7;
+      background: #fff2f0;
+      color: #a8071a;
+      font-size: 12px;
+      white-space: pre-wrap;
+      display:none;
+    }
+
+    @media (max-width: 700px){
+      .container{ padding: 10px; }
+      h1{ font-size: 16px; }
+      .sub{ font-size: 11px; }
+
+      .row{
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin: 12px 0;
+      }
+      input, select{
+        padding: 12px 12px;
+        font-size: 16px;
+      }
+      .kpiValue{ font-size: 17px; }
+      .tableWrap{ max-height: 420px; }
+    }
+
+    .stickyBar{
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      background: rgba(245,246,248,0.92);
+      backdrop-filter: blur(6px);
+      padding: 10px 0 0;
+      margin-top: -4px;
+    }
+    .stickyInner{
+      display:flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid #e6e6e6;
+      background: #fff;
+      box-shadow: 0 -6px 20px rgba(0,0,0,0.06);
+    }
+    .calcBtn{
+      width: 100%;
+      padding: 14px 14px;
+      font-size: 16px;
+      border-radius: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>住宅ローン シンプルシミュレーター</h1>
+      <div class="sub">初期は未計算（空白）／スマホは1カラム＋下部ボタン固定</div>
+    </header>
+
+    <div class="card">
+      <h2 class="sectionTitle">① 条件入力</h2>
+
+      <div class="grid2">
+        <div>
+          <div class="row">
+            <label>ローン形態</label>
+            <select id="loanMode">
+              <option value="single">シングル</option>
+              <option value="pair">ペアローン</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>購入物件価格（円）</label>
+            <input id="propertyPrice" type="text" inputmode="numeric" placeholder="例）70,000,000">
+          </div>
+
+          <div class="row">
+            <label>返済開始月</label>
+            <input id="startMonth" type="month">
+          </div>
+
+          <div class="scenarioBox">
+            <div class="scenarioTitle">
+              <div>金利感応度（0.1%刻み）<span class="pill">A/B両方</span></div>
+              <span class="pill" id="sensLabel">+0.0%</span>
+            </div>
+            <div class="rangeLine">
+              <input id="sensSlider" type="range" min="-100" max="200" step="10" value="0">
+              <div class="rangeValue" id="sensValue">+0.0%</div>
+            </div>
+            <div class="note">※スライダーは即時再計算（計算後のみ）</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="kpis">
+            <div class="kpiBox">
+              <div class="kpiLabel">総支払額（合算）</div>
+              <div class="kpiValue" id="kpiTotalPaid">-</div>
+            </div>
+            <div class="kpiBox">
+              <div class="kpiLabel">総支払利息（合算）</div>
+              <div class="kpiValue" id="kpiTotalInterest">-</div>
+            </div>
+            <div class="kpiBox">
+              <div class="kpiLabel">完済月（合算）</div>
+              <div class="kpiValue" id="kpiEndMonth">-</div>
+            </div>
+            <div class="kpiBox">
+              <div class="kpiLabel">初年度（12ヶ月）返済額（合算）</div>
+              <div class="kpiValue" id="kpiYear1Paid">-</div>
+            </div>
+          </div>
+
+          <div class="note">初回月の内訳（合算）</div>
+          <div class="miniGrid">
+            <div class="lab">初回月：返済額</div><div class="val" id="kpiM_pay">-</div>
+            <div class="lab">初回月：元金</div><div class="val" id="kpiM_pri">-</div>
+            <div class="lab">初回月：利息</div><div class="val" id="kpiM_int">-</div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;">
+
+      <div class="grid2">
+        <div class="loanInnerCard">
+          <h3 class="sectionTitle" style="margin-bottom:6px;">ローンA</h3>
+
+          <div class="row">
+            <label>固定 / 変動</label>
+            <select id="rateTypeA">
+              <option value="fixed">固定</option>
+              <option value="variable" selected>変動</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>年利（%）</label>
+            <input id="rateA" type="number" step="0.01" value="0.90">
+          </div>
+
+          <div class="row">
+            <label>返済方式</label>
+            <select id="methodA">
+              <option value="annuity" selected>元利均等</option>
+              <option value="equal_principal">元金均等</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>借入期間（年）</label>
+            <input id="termYearsA" type="number" min="1" max="50" value="35">
+          </div>
+
+          <div class="row">
+            <label>借入金額（円）</label>
+            <input id="principalA" type="text" inputmode="numeric" placeholder="例）70,000,000">
+          </div>
+
+          <div class="scenarioBox" id="varBoxA">
+            <div class="scenarioTitle">
+              <div>変動金利：途中月から上昇</div>
+              <span class="pill">+0.1%刻み</span>
+            </div>
+            <div class="toolbar" style="margin:6px 0;">
+              <button type="button" class="secondary" id="addRateEventA">＋追加</button>
+              <button type="button" class="secondary" id="presetRateA">5年後 +0.5%</button>
+            </div>
+            <div class="scenarioTableWrap">
+              <table id="rateEventsTableA">
+                <thead><tr><th>適用開始月</th><th>上昇幅（%）</th><th>操作</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="loanInnerCard hidden" id="loanBCard">
+          <h3 class="sectionTitle" style="margin-bottom:6px;">ローンB <span class="pill">ペア時のみ</span></h3>
+
+          <div class="row" id="linkRateRow">
+            <label>金利の連動</label>
+            <div class="checkline">
+              <input type="checkbox" id="linkRateAB" checked>
+              <span>Aの金利をBに連動</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>固定 / 変動</label>
+            <select id="rateTypeB">
+              <option value="fixed">固定</option>
+              <option value="variable" selected>変動</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>年利（%）</label>
+            <input id="rateB" type="number" step="0.01" value="0.90">
+          </div>
+
+          <div class="row">
+            <label>返済方式</label>
+            <select id="methodB">
+              <option value="annuity" selected>元利均等</option>
+              <option value="equal_principal">元金均等</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>借入期間（年）</label>
+            <input id="termYearsB" type="number" min="1" max="50" value="35">
+          </div>
+
+          <div class="row">
+            <label>借入金額（円）</label>
+            <input id="principalB" type="text" inputmode="numeric" placeholder="例）30,000,000">
+          </div>
+
+          <div class="scenarioBox" id="varBoxB">
+            <div class="scenarioTitle">
+              <div>変動金利：途中月から上昇</div>
+              <span class="pill">+0.1%刻み</span>
+            </div>
+            <div class="toolbar" style="margin:6px 0;">
+              <button type="button" class="secondary" id="addRateEventB">＋追加</button>
+              <button type="button" class="secondary" id="presetRateB">5年後 +0.5%</button>
+            </div>
+            <div class="scenarioTableWrap">
+              <table id="rateEventsTableB">
+                <thead><tr><th>適用開始月</th><th>上昇幅（%）</th><th>操作</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ CSV導線 -->
+      <div class="stickyBar">
+        <div class="stickyInner">
+          <button id="btnCalc" type="button" class="calcBtn">▶ 計算する</button>
+          <button id="btnCSVAllInOne" class="secondary" type="button" disabled>CSV（全部入り）</button>
+          <button id="btnCSVSplitFiles" class="secondary" type="button" disabled>CSV（分割）</button>
+        </div>
+      </div>
+
+      <div class="errorBox" id="errorBox"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="sectionTitle">② 返済表</h2>
+      <div class="tables">
+        <div>
+          <div class="toolbar" style="justify-content:space-between;margin:8px 0;">
+            <div><b>ローンA</b></div>
+            <span class="pill" id="badgeA">-</span>
+          </div>
+          <div class="tableWrap"><table id="tableA"></table></div>
+        </div>
+
+        <div class="hidden" id="wrapB">
+          <div class="toolbar" style="justify-content:space-between;margin:8px 0;">
+            <div><b>ローンB</b></div>
+            <span class="pill" id="badgeB">-</span>
+          </div>
+          <div class="tableWrap"><table id="tableB"></table></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <div class="toolbar" style="justify-content:space-between;margin:8px 0;">
+          <div><b>物件の残債（合算）</b></div>
+        </div>
+        <div class="tableWrap"><table id="tableTotal"></table></div>
+      </div>
+    </div>
+
+    <footer>Copyright all rights reserved @coperu100</footer>
+  </div>
+
+<script>
+/* ===== 共通 ===== */
+const yenFmt = new Intl.NumberFormat("ja-JP");
+function $(id){ return document.getElementById(id); }
+function parseNumber(str){
+  if (typeof str === "number") return str;
+  if (!str) return 0;
+  const s = String(str).replace(/,/g,"").trim();
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+function formatCommaInput(el){
+  const n = parseNumber(el.value);
+  if (!n) return;
+  el.value = yenFmt.format(Math.round(n));
+}
+function formatCommaLive(el) {
+  const raw = el.value;
+  const caret = el.selectionStart ?? raw.length;
+  const digitsLeft = raw.slice(0, caret).replace(/\D/g, "").length;
+
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 0) { el.value = ""; return; }
+
+  const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  el.value = formatted;
+
+  let newPos = 0, count = 0;
+  while (newPos < formatted.length && count < digitsLeft) {
+    if (/\d/.test(formatted[newPos])) count++;
+    newPos++;
+  }
+  el.setSelectionRange(newPos, newPos);
+}
+function ymToIndex(ym){
+  const [y,m] = ym.split("-").map(Number);
+  return y*12 + (m-1);
+}
+function indexToYM(idx){
+  const y = Math.floor(idx/12);
+  const m = (idx%12) + 1;
+  return `${y}-${String(m).padStart(2,"0")}`;
+}
+function addMonths(ym, add){ return indexToYM(ymToIndex(ym)+add); }
+
+function downloadBlob(filename, mime, content){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+/* ✅CSV文字化け対策（Excel向け）：UTF-8 BOM付きでダウンロード */
+function downloadCsv(filename, csvText){
+  const bom = "\uFEFF";
+  downloadBlob(filename, "text/csv;charset=utf-8", bom + csvText);
+}
+
+function rowsToCsv(rows){
+  const esc = (v) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+  return rows.map(r => r.map(esc).join(",")).join("\n");
+}
+function bpsToPctLabel(bps){
+  const pct = bps / 100;
+  return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+}
+
+/* ===== シナリオ表 ===== */
+function addRateEventRow(tbody, ymValue="", deltaPct=0.5){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="month" value="${ymValue}" style="width:160px;"></td>
+    <td><input type="number" step="0.1" value="${deltaPct}" style="width:110px;"></td>
+    <td><button type="button" class="secondary">削除</button></td>
+  `;
+  tr.querySelector("button").addEventListener("click", ()=>{ tr.remove(); maybeAutoCalc(); });
+  tbody.appendChild(tr);
+}
+function readRateEvents(tableId){
+  const rows = [...document.querySelectorAll(`#${tableId} tbody tr`)];
+  return rows.map(tr=>{
+    const ym = tr.querySelector('input[type="month"]').value;
+    const deltaPct = Number(tr.querySelector('input[type="number"]').value || 0);
+    const deltaBps = Math.round(deltaPct * 100);
+    return { ym, deltaBps };
+  }).filter(e => e.ym && Number.isFinite(e.deltaBps) && e.deltaBps !== 0)
+    .sort((a,b)=> ymToIndex(a.ym) - ymToIndex(b.ym));
+}
+
+/* ===== 計算ロジック ===== */
+function paymentAnnuity(balance, monthlyRate, monthsLeft){
+  if (monthsLeft <= 0) return 0;
+  if (monthlyRate <= 0) return balance / monthsLeft;
+  const r = monthlyRate;
+  const pow = Math.pow(1+r, monthsLeft);
+  return balance * r * pow / (pow - 1);
+}
+function buildAnnualRateSeries({startYM, months, baseRatePct, sensBps, rateType, events}){
+  const base = baseRatePct / 100;
+  const sens = (sensBps || 0) / 10000;
+  const series = new Array(months).fill(base + sens);
+  if (rateType !== "variable") return series;
+
+  const ev = (events || []).map(e=>({
+    offset: ymToIndex(e.ym) - ymToIndex(startYM),
+    delta: (e.deltaBps || 0) / 10000
+  })).filter(x => x.offset >= 0 && x.offset < months)
+    .sort((a,b)=>a.offset-b.offset);
+
+  let cum = 0, p=0;
+  for (let t=0; t<months; t++){
+    while (p < ev.length && ev[p].offset === t){ cum += ev[p].delta; p++; }
+    series[t] = base + sens + cum;
+  }
+  return series;
+}
+function calcSchedule({principal, startYM, years, baseRatePct, rateType, method, sensBps, rateEvents}){
+  const totalMonths = Math.round(years * 12);
+  let balance = Math.max(0, Math.round(principal));
+  const annualRates = buildAnnualRateSeries({startYM, months: totalMonths, baseRatePct, sensBps, rateType, events: rateEvents});
+
+  const schedule = [];
+  let paidTotal = 0, interestTotal = 0, monthsLeft = totalMonths;
+  const fixedMonthlyPrincipal = totalMonths > 0 ? (balance / totalMonths) : 0;
+
+  let payment = 0;
+  if (method === "annuity") payment = paymentAnnuity(balance, annualRates[0]/12, monthsLeft);
+
+  for (let t=0; t<totalMonths; t++){
+    if (balance <= 0.5) break;
+    const ym = addMonths(startYM, t);
+    const annualRate = annualRates[t];
+    const mRate = annualRate / 12;
+
+    const rateChanged = (t > 0 && annualRates[t] !== annualRates[t-1] && rateType === "variable");
+    if (method === "annuity" && rateChanged){
+      payment = paymentAnnuity(balance, mRate, monthsLeft);
+    }
+
+    const interest = balance * mRate;
+    let principalPay, payThisMonth;
+
+    if (method === "annuity"){
+      payThisMonth = payment;
+      principalPay = Math.max(0, payThisMonth - interest);
+      if (principalPay > balance){
+        principalPay = balance;
+        payThisMonth = principalPay + interest;
+      }
+    } else {
+      principalPay = Math.min(balance, fixedMonthlyPrincipal);
+      payThisMonth = principalPay + interest;
+    }
+
+    balance -= principalPay;
+    paidTotal += payThisMonth;
+    interestTotal += interest;
+
+    schedule.push({
+      Month: ym,
+      AnnualRatePct: annualRate * 100,
+      Payment: payThisMonth,
+      Principal: principalPay,
+      Interest: interest,
+      Balance: balance < 0.5 ? 0 : balance
+    });
+
+    monthsLeft -= 1;
+  }
+  return { schedule, paidTotal, interestTotal };
+}
+function buildTotalSchedule(startYM, maxMonths, schedA, schedB){
+  const mapA = new Map(schedA.map(r => [r.Month, r]));
+  const mapB = new Map(schedB.map(r => [r.Month, r]));
+  const total = [];
+  for (let t=0; t<maxMonths; t++){
+    const ym = addMonths(startYM, t);
+    const a = mapA.get(ym);
+    const b = mapB.get(ym);
+    if (!a && !b) break;
+    const pay = (a?.Payment || 0) + (b?.Payment || 0);
+    const pri = (a?.Principal || 0) + (b?.Principal || 0);
+    const intr = (a?.Interest || 0) + (b?.Interest || 0);
+    const bal = (a?.Balance || 0) + (b?.Balance || 0);
+    total.push({Month: ym, Payment: pay, Principal: pri, Interest: intr, Balance: bal});
+    if (bal <= 0.5) break;
+  }
+  return total;
+}
+function renderScheduleTable(el, schedule){
+  const head = ["Month","Rate(%)","Payment","Principal","Interest","Balance"];
+  const firstN = 24, lastN = 12;
+  let rows = schedule;
+  if (schedule.length > firstN + lastN){
+    rows = schedule.slice(0, firstN).concat([{__sep:true}], schedule.slice(-lastN));
+  }
+  let html = "<thead><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+  for (const r of rows){
+    if (r.__sep){
+      html += `<tr><td colspan="${head.length}" style="text-align:center;color:#888;">…</td></tr>`;
+      continue;
+    }
+    html += `<tr>
+      <td>${r.Month}</td>
+      <td>${r.AnnualRatePct.toFixed(2)}</td>
+      <td>${yenFmt.format(Math.round(r.Payment))}</td>
+      <td>${yenFmt.format(Math.round(r.Principal))}</td>
+      <td>${yenFmt.format(Math.round(r.Interest))}</td>
+      <td>${yenFmt.format(Math.round(r.Balance))}</td>
+    </tr>`;
+  }
+  html += "</tbody>";
+  el.innerHTML = html;
+}
+function renderTotalTable(el, total){
+  const head = ["Month","Payment(total)","Principal(total)","Interest(total)","Balance(total)"];
+  const firstN = 24, lastN = 12;
+  let rows = total;
+  if (total.length > firstN + lastN){
+    rows = total.slice(0, firstN).concat([{__sep:true}], total.slice(-lastN));
+  }
+  let html = "<thead><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+  for (const r of rows){
+    if (r.__sep){
+      html += `<tr><td colspan="${head.length}" style="text-align:center;color:#888;">…</td></tr>`;
+      continue;
+    }
+    html += `<tr>
+      <td>${r.Month}</td>
+      <td>${yenFmt.format(Math.round(r.Payment))}</td>
+      <td>${yenFmt.format(Math.round(r.Principal))}</td>
+      <td>${yenFmt.format(Math.round(r.Interest))}</td>
+      <td>${yenFmt.format(Math.round(r.Balance))}</td>
+    </tr>`;
+  }
+  html += "</tbody>";
+  el.innerHTML = html;
+}
+
+/* ===== UI / 計算 ===== */
+const els = {
+  loanMode: $("loanMode"),
+  propertyPrice: $("propertyPrice"),
+  startMonth: $("startMonth"),
+  sensSlider: $("sensSlider"),
+  sensLabel: $("sensLabel"),
+  sensValue: $("sensValue"),
+
+  rateTypeA: $("rateTypeA"),
+  rateA: $("rateA"),
+  methodA: $("methodA"),
+  termYearsA: $("termYearsA"),
+  principalA: $("principalA"),
+
+  loanBCard: $("loanBCard"),
+  wrapB: $("wrapB"),
+  linkRateRow: $("linkRateRow"),
+  linkRateAB: $("linkRateAB"),
+  rateTypeB: $("rateTypeB"),
+  rateB: $("rateB"),
+  methodB: $("methodB"),
+  termYearsB: $("termYearsB"),
+  principalB: $("principalB"),
+
+  addRateEventA: $("addRateEventA"),
+  addRateEventB: $("addRateEventB"),
+  presetRateA: $("presetRateA"),
+  presetRateB: $("presetRateB"),
+  rateEventsTableA: $("rateEventsTableA"),
+  rateEventsTableB: $("rateEventsTableB"),
+
+  btnCalc: $("btnCalc"),
+  btnCSVAllInOne: $("btnCSVAllInOne"),
+  btnCSVSplitFiles: $("btnCSVSplitFiles"),
+
+  tableA: $("tableA"),
+  tableB: $("tableB"),
+  tableTotal: $("tableTotal"),
+  badgeA: $("badgeA"),
+  badgeB: $("badgeB"),
+
+  kpiTotalPaid: $("kpiTotalPaid"),
+  kpiTotalInterest: $("kpiTotalInterest"),
+  kpiEndMonth: $("kpiEndMonth"),
+  kpiYear1Paid: $("kpiYear1Paid"),
+  kpiM_pay: $("kpiM_pay"),
+  kpiM_pri: $("kpiM_pri"),
+  kpiM_int: $("kpiM_int"),
+
+  errorBox: $("errorBox"),
+};
+
+function showError(msg){
+  els.errorBox.style.display = "block";
+  els.errorBox.textContent = msg;
+}
+function clearError(){
+  els.errorBox.style.display = "none";
+  els.errorBox.textContent = "";
+}
+function resetOutputs(){
+  els.kpiTotalPaid.textContent = "-";
+  els.kpiTotalInterest.textContent = "-";
+  els.kpiEndMonth.textContent = "-";
+  els.kpiYear1Paid.textContent = "-";
+  els.kpiM_pay.textContent = "-";
+  els.kpiM_pri.textContent = "-";
+  els.kpiM_int.textContent = "-";
+  els.tableA.innerHTML = "";
+  els.tableB.innerHTML = "";
+  els.tableTotal.innerHTML = "";
+  els.badgeA.textContent = "-";
+  els.badgeB.textContent = "-";
+  els.btnCSVAllInOne.disabled = true;
+  els.btnCSVSplitFiles.disabled = true;
+  last = null;
+}
+
+function updateModeUI(){
+  const isPair = els.loanMode.value === "pair";
+  els.loanBCard.classList.toggle("hidden", !isPair);
+  els.wrapB.classList.toggle("hidden", !isPair);
+  els.linkRateRow.classList.toggle("hidden", !isPair);
+  if (!isPair) els.principalB.value = "";
+  updateLinkRateUI();
+}
+
+function updateSensUI(){
+  const bps = Number(els.sensSlider.value || 0);
+  const label = bpsToPctLabel(bps);
+  els.sensLabel.textContent = label;
+  els.sensValue.textContent = label;
+}
+
+function syncRateBFromA(){
+  if (els.loanMode.value !== "pair") return;
+  if (!els.linkRateAB.checked) return;
+  els.rateB.value = els.rateA.value;
+}
+function updateLinkRateUI(){
+  if (els.loanMode.value !== "pair") return;
+  const linked = els.linkRateAB.checked;
+  els.rateB.disabled = linked;
+  if (linked) syncRateBFromA();
+}
+
+let last = null;
+let hasCalculated = false;
+function maybeAutoCalc(){
+  if (!hasCalculated) return;
+  runCalc({silent:true});
+}
+
+function hasMinimumInputs(){
+  const startYM = els.startMonth.value;
+  const aP = parseNumber(els.principalA.value);
+  if (!startYM || aP <= 0) return false;
+  if (els.loanMode.value === "pair"){
+    const bP = parseNumber(els.principalB.value);
+    if (bP <= 0) return false;
+  }
+  return true;
+}
+
+function runCalc({silent=false} = {}){
+  clearError();
+  if (!hasMinimumInputs()){
+    if (!silent) alert("返済開始月と借入金額（A、ペアならB）を入力してください。");
+    resetOutputs();
+    return false;
+  }
+
+  try{
+    updateModeUI();
+    updateLinkRateUI();
+
+    const isPair = els.loanMode.value === "pair";
+    const startYM = els.startMonth.value;
+
+    const principalA = parseNumber(els.principalA.value);
+    const principalB = isPair ? parseNumber(els.principalB.value) : 0;
+
+    const yearsA = Number(els.termYearsA.value || 35);
+    const yearsB = isPair ? Number(els.termYearsB.value || 35) : 0;
+    const sensBps = Number(els.sensSlider.value || 0);
+
+    const cfgA = {
+      principal: principalA,
+      startYM,
+      years: yearsA,
+      baseRatePct: Number(els.rateA.value || 0),
+      rateType: els.rateTypeA.value,
+      method: els.methodA.value,
+      sensBps,
+      rateEvents: readRateEvents("rateEventsTableA")
+    };
+    const resA = calcSchedule(cfgA);
+
+    let cfgB = null;
+    let resB = {schedule:[], paidTotal:0, interestTotal:0};
+    if (isPair){
+      cfgB = {
+        principal: principalB,
+        startYM,
+        years: yearsB,
+        baseRatePct: Number(els.rateB.value || 0),
+        rateType: els.rateTypeB.value,
+        method: els.methodB.value,
+        sensBps,
+        rateEvents: readRateEvents("rateEventsTableB")
+      };
+      resB = calcSchedule(cfgB);
+    }
+
+    const maxMonths = Math.max(Math.round(yearsA*12), Math.round(yearsB*12));
+    const total = buildTotalSchedule(startYM, maxMonths, resA.schedule, resB.schedule);
+
+    renderScheduleTable(els.tableA, resA.schedule);
+    if (isPair) renderScheduleTable(els.tableB, resB.schedule);
+    renderTotalTable(els.tableTotal, total);
+
+    const totalPaid = resA.paidTotal + resB.paidTotal;
+    const totalInterest = resA.interestTotal + resB.interestTotal;
+    const endYM = total.length ? total[total.length-1].Month : startYM;
+
+    els.kpiTotalPaid.textContent = yenFmt.format(Math.round(totalPaid));
+    els.kpiTotalInterest.textContent = yenFmt.format(Math.round(totalInterest));
+    els.kpiEndMonth.textContent = endYM;
+
+    const a0 = resA.schedule[0];
+    const b0 = resB.schedule[0];
+    const pay0 = (a0?.Payment || 0) + (b0?.Payment || 0);
+    const pri0 = (a0?.Principal || 0) + (b0?.Principal || 0);
+    const int0 = (a0?.Interest || 0) + (b0?.Interest || 0);
+
+    els.kpiM_pay.textContent = yenFmt.format(Math.round(pay0));
+    els.kpiM_pri.textContent = yenFmt.format(Math.round(pri0));
+    els.kpiM_int.textContent = yenFmt.format(Math.round(int0));
+
+    const year1Paid = total.slice(0, 12).reduce((s,r)=>s + (r.Payment||0), 0);
+    els.kpiYear1Paid.textContent = yenFmt.format(Math.round(year1Paid));
+
+    last = { isPair, startYM, cfgA, cfgB, resA, resB, total };
+
+    els.btnCSVAllInOne.disabled = false;
+    els.btnCSVSplitFiles.disabled = false;
+
+    return true;
+
+  }catch(e){
+    showError("計算処理でエラーが発生しました。\n\n" + (e?.stack || String(e)));
+    return false;
+  }
+}
+
+/* ===== CSV出力（日本語ヘッダー・BOM対応） ===== */
+
+/** ① 全体（合算）のローン返済計画（月次） */
+function buildCsvTotalScheduleJP(){
+  const rows = [];
+  rows.push(["月","返済額（合算）","元金（合算）","利息（合算）","残高（合算）"]);
+  for (const r of last.total){
+    rows.push([r.Month, Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+  }
+  return rowsToCsv(rows);
+}
+
+/** ②-1 ローンA返済計画（月次） */
+function buildCsvLoanAJP(){
+  const rows = [];
+  rows.push(["月","適用金利(%)","返済額","元金","利息","残高"]);
+  for (const r of last.resA.schedule){
+    rows.push([r.Month, Number(r.AnnualRatePct.toFixed(4)), Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+  }
+  return rowsToCsv(rows);
+}
+
+/** ②-2 ローンB返済計画（月次） */
+function buildCsvLoanBJP(){
+  const rows = [];
+  rows.push(["月","適用金利(%)","返済額","元金","利息","残高"]);
+  for (const r of last.resB.schedule){
+    rows.push([r.Month, Number(r.AnnualRatePct.toFixed(4)), Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+  }
+  return rowsToCsv(rows);
+}
+
+/** ③ 物件残債表（A残債 / B残債 / 合算） */
+function buildCsvPropertyBalance3ColsJP(){
+  const rows = [];
+  rows.push(["月","A残債","B残債","合算残債"]);
+
+  const mapA = new Map(last.resA.schedule.map(r => [r.Month, r]));
+  const mapB = new Map((last.resB?.schedule || []).map(r => [r.Month, r]));
+
+  for (const t of last.total){
+    const aBal = mapA.get(t.Month)?.Balance ?? 0;
+    const bBal = mapB.get(t.Month)?.Balance ?? 0;
+    rows.push([t.Month, Math.round(aBal), Math.round(bBal), Math.round(aBal + bBal)]);
+  }
+  return rowsToCsv(rows);
+}
+
+/** 全部入り（1ファイル：①②③まとめて） */
+function buildCsvAllInOneJP(){
+  const rows = [];
+
+  rows.push(["【① 全体（合算）の返済計画（月次）】"]);
+  rows.push(["月","返済額（合算）","元金（合算）","利息（合算）","残高（合算）"]);
+  for (const r of last.total){
+    rows.push([r.Month, Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+  }
+  rows.push([]);
+
+  rows.push(["【②-1 ローンA 返済計画（月次）】"]);
+  rows.push(["月","適用金利(%)","返済額","元金","利息","残高"]);
+  for (const r of last.resA.schedule){
+    rows.push([r.Month, Number(r.AnnualRatePct.toFixed(4)), Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+  }
+  rows.push([]);
+
+  if (last.isPair){
+    rows.push(["【②-2 ローンB 返済計画（月次）】"]);
+    rows.push(["月","適用金利(%)","返済額","元金","利息","残高"]);
+    for (const r of last.resB.schedule){
+      rows.push([r.Month, Number(r.AnnualRatePct.toFixed(4)), Math.round(r.Payment), Math.round(r.Principal), Math.round(r.Interest), Math.round(r.Balance)]);
+    }
+    rows.push([]);
+  }
+
+  rows.push(["【③ 物件残債表（月次）】"]);
+  rows.push(["月","A残債","B残債","合算残債"]);
+  const mapA = new Map(last.resA.schedule.map(r => [r.Month, r]));
+  const mapB = new Map((last.resB?.schedule || []).map(r => [r.Month, r]));
+  for (const t of last.total){
+    const aBal = mapA.get(t.Month)?.Balance ?? 0;
+    const bBal = mapB.get(t.Month)?.Balance ?? 0;
+    rows.push([t.Month, Math.round(aBal), Math.round(bBal), Math.round(aBal + bBal)]);
+  }
+
+  return rowsToCsv(rows);
+}
+
+/* ===== events ===== */
+els.propertyPrice.addEventListener("input", ()=> formatCommaLive(els.propertyPrice));
+els.propertyPrice.addEventListener("blur", ()=> formatCommaLive(els.propertyPrice));
+
+els.principalA.addEventListener("input", ()=> formatCommaLive(els.principalA));
+els.principalB.addEventListener("input", ()=> formatCommaLive(els.principalB));
+
+els.loanMode.addEventListener("change", ()=>{
+  hasCalculated = false;
+  resetOutputs();
+  updateModeUI();
+});
+
+els.linkRateAB.addEventListener("change", ()=>{ updateLinkRateUI(); maybeAutoCalc(); });
+els.rateA.addEventListener("input", ()=>{ syncRateBFromA(); maybeAutoCalc(); });
+els.rateB.addEventListener("input", ()=> maybeAutoCalc());
+
+els.methodA.addEventListener("change", ()=> maybeAutoCalc());
+els.methodB.addEventListener("change", ()=> maybeAutoCalc());
+els.rateTypeA.addEventListener("change", ()=> maybeAutoCalc());
+els.rateTypeB.addEventListener("change", ()=> maybeAutoCalc());
+els.termYearsA.addEventListener("change", ()=> maybeAutoCalc());
+els.termYearsB.addEventListener("change", ()=> maybeAutoCalc());
+
+els.startMonth.addEventListener("change", ()=> maybeAutoCalc());
+
+els.principalA.addEventListener("blur", ()=>{ formatCommaLive(els.principalA); maybeAutoCalc(); });
+els.principalB.addEventListener("blur", ()=>{ formatCommaLive(els.principalB); maybeAutoCalc(); });
+
+let tDebounce=null;
+els.sensSlider.addEventListener("input", ()=>{
+  updateSensUI();
+  clearTimeout(tDebounce);
+  tDebounce=setTimeout(()=> maybeAutoCalc(), 80);
+});
+
+els.addRateEventA.addEventListener("click", ()=>{ addRateEventRow(els.rateEventsTableA.querySelector("tbody"), "", 0.5); });
+els.addRateEventB.addEventListener("click", ()=>{ addRateEventRow(els.rateEventsTableB.querySelector("tbody"), "", 0.5); });
+els.presetRateA.addEventListener("click", ()=>{
+  const startYM = els.startMonth.value;
+  if (!startYM) return alert("返済開始月を入力してください");
+  addRateEventRow(els.rateEventsTableA.querySelector("tbody"), addMonths(startYM, 60), 0.5);
+  maybeAutoCalc();
+});
+els.presetRateB.addEventListener("click", ()=>{
+  const startYM = els.startMonth.value;
+  if (!startYM) return alert("返済開始月を入力してください");
+  addRateEventRow(els.rateEventsTableB.querySelector("tbody"), addMonths(startYM, 60), 0.5);
+  maybeAutoCalc();
+});
+
+els.btnCalc.addEventListener("click", ()=>{
+  const ok = runCalc({silent:false});
+  hasCalculated = ok;
+});
+
+/* ✅CSV：全部入り（1ファイル） */
+els.btnCSVAllInOne.addEventListener("click", ()=>{
+  if (!last) return;
+  downloadCsv("ローン返済計画_全部入り.csv", buildCsvAllInOneJP());
+});
+
+/* ✅CSV：分割（複数ファイル） */
+els.btnCSVSplitFiles.addEventListener("click", ()=>{
+  if (!last) return;
+  downloadCsv("①全体_返済計画.csv", buildCsvTotalScheduleJP());
+  downloadCsv("②ローンA_返済計画.csv", buildCsvLoanAJP());
+  if (last.isPair) downloadCsv("②ローンB_返済計画.csv", buildCsvLoanBJP());
+  downloadCsv("③物件_残債表.csv", buildCsvPropertyBalance3ColsJP());
+});
+
+/* init */
+function init(){
+  updateModeUI();
+  updateSensUI();
+  resetOutputs();
+}
+init();
+</script>
+</body>
+</html>
